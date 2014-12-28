@@ -1,28 +1,23 @@
-Multiple devices and key synchronization
-
-So, Trevor asked Yan to get me to write up some tentative
-thoughts on using multiple devices with modern messaging
-systems. (These notes owe a great deal to the discussions
-Yan and I have had, but any mistakes are entirely mine.)
+# Multiple devices and key synchronization
 
 Though I'm presently thinking mainly about mail-like services,
 I've tried to make this note as general as possible, perhaps
 at the cost of legibility.
 
-# Introduction: The multi-device problem
+## Introduction: The multi-device problem
 
 So, we all have multiple devices. And any messaging design
 should work as seamlessly as possible (given the particular
 design's security goals) for this "multi-device" case.
 
-# Preliminaries
+## Preliminaries
 
 (Skip ahead.)
 
 Note: I don't cover the security of stored messages. This
 is really important, but a topic for a separate mail.
 
-## Definitions
+### Definitions
 
 A *user* is a human. An *account* is, well, an account
 with a service provider. An *identity* is some mapping
@@ -34,7 +29,7 @@ browser profile).
 A device is *enrolled* when it is able to send and
 receive messages for an account.
 
-## Framework
+### Framework
 
 I'll assume the following, toy authentication and key
 distribution/rotation framework:
@@ -61,7 +56,7 @@ Keys may always be revoked by a signature on a revocation
 statement by the recovery key. (And in some of the options
 I present, under other circumstances.)
 
-## Security goals
+### Security goals
 
 Security goals are standard for a messaging system that
 doesn't promise cryptographic deniability.[^traceability]
@@ -84,7 +79,7 @@ all messages will be signed.)
 [^nearly]: Excluding some exceptional cases, to be
 discussed in a future document.
 
-## Local channels
+### Local channels
 
 A *local channel* is some method for transmitting secrets that
 does not involve packets transiting the internet. (E.g., QR
@@ -106,9 +101,9 @@ I'll assume that if a non-user-auditable local channel is used,
 something like an SAS protocol (see infra) is used to conduct
 a local AKE to prevent MitM attacks.
 
-# Solutions to the multi-device problem
+## Solutions to the multi-device problem
 
-## Don't bother
+### Don't bother
 
 This is TextSecure's current solution, AFAIK.
 
@@ -117,7 +112,7 @@ compromises security: A user needs to bootstrap each trust
 relationship (and suffers the possibility of being MitMed)
 with every new device they use.
 
-### Minimal option?
+#### Minimal option?
 
 An idea for a minimal option for deniable messaging services:
 
@@ -133,7 +128,7 @@ stored axolotl state.
 be a horrible idea.)
 
 
-## Synchronize a single private keypair
+### Synchronize a single private keypair
 
 A typical example is Whiteout.io: Encrypt the private keypair
 under a strong symmetric key. In order to enroll a new device,
@@ -143,11 +138,11 @@ downloads the encrypted private key blob.  See [Tankred Hase's
 discussion on this list][wio_keysync] and Whiteout.io's [Github
 repos][wio] for more details.
 
-### The good parts
+#### The good parts
 
 Really simple.
 
-### The bad parts
+#### The bad parts
 
 **Prone to bad implementations.** The implementation
 described by Whiteout.io on this list is characteristic:
@@ -196,7 +191,7 @@ material. (512 bytes seems quite feasible for most
 devices.) Question: Does anyone do this already?
 
 
-## Separate signing keys, shared encryption key
+### Separate signing keys, shared encryption key
 
 Device0 is already enrolled. Device1 generates a new
 signing key. Device0 and device1 authenticate a network
@@ -210,7 +205,7 @@ device1 encrypted under the shared secret. The devices
 each other's keys, cross-sign them, and upload them to
 the keyserver.
 
-### The good parts
+#### The good parts
 
 *All devices can decrypt all messages.* It isn't possible
 for an adversary to, e.g., target malware to a specific
@@ -226,7 +221,7 @@ to using -- and exposing to possible compromise -- their
 long-term recovery key.)
 
 
-### The bad parts
+#### The bad parts
 
 *The still-trusted devices may not have any key-material
 to exchange a new symmetric encryption key.* Since they
@@ -241,7 +236,7 @@ an account to designate some devices as more trustworthy
 than others.
 
 
-## Separate keypairs
+### Separate keypairs
 
 Devices authenticate each other as above -- a local channel
 plus a network channel -- but they just use the shared secret
@@ -251,7 +246,7 @@ To send a mail to an account, the sender encrypts to all
 encryption keys (with valid signature chains) returned
 by the keyserver.
 
-### The good parts
+#### The good parts
 
 *Particularly important messages can be encrypted only to the
 keys of particularly trustworthy devices.* Here's one possible
@@ -264,7 +259,7 @@ tell an encrypting proxy to not encrypt such mails to my phone.
 don't share an encryption key, they don't all need to change
 their encryption keys immediately.
 
-### The bad parts
+#### The bad parts
 
 *Targeted malicious messages.* The flip side of all devices
 being able to decrypt all messages, as above.
@@ -273,9 +268,9 @@ being able to decrypt all messages, as above.
 N devices means N times as large of a keyset to download from
 the keyserver. Etc.
 
-# Notes
+## Notes
 
-## Fingerprints for manual verification of account identity
+### Fingerprints for manual verification of account identity
 
 The most natural equivalent to a traditional OpenPGP
 fingerprint in this setting would be some string derived
@@ -288,7 +283,7 @@ The best option is
 where `passkdf` is a sequential-hard KDF. Pace Joe,
 preventing multitarget attacks is worthwhile.
 
-## Short authentication strings
+### Short authentication strings
 
 Trevor Perrin has described a very simple SAS protocol [on
 this list][trevp_sas]. ZRTP uses an SAS protocol, but the full
